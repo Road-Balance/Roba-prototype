@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
+	"log"
 	"strconv"
 	"time"
 
@@ -11,6 +13,7 @@ import (
 
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
+	"github.com/jacobsa/go-serial/serial"
 )
 
 type joysticValue struct {
@@ -25,18 +28,37 @@ var (
 	Logger               *logrus.Logger
 	currentJoystickState joysticValue
 	currentTeensyValue   teensyValue
+	teensySerialPort     io.ReadWriteCloser
 )
 
 func main() {
 	Logger = logrus.New()
 
-	var jsid int
+	var (
+		jsid, baud int
+		port       string
+		err        error
+	)
 	flag.IntVar(&jsid, "id", 0, "joystick device id")
+	flag.StringVar(&port, "sport", "", "serial port")
+	flag.IntVar(&baud, "sbaud", 115200, "serial port baudrate")
 	flag.Parse()
+
+	serialOpt := serial.OpenOptions{
+		PortName:        port,
+		BaudRate:        uint(baud),
+		DataBits:        8,
+		StopBits:        1,
+		MinimumReadSize: 4,
+	}
+	if teensySerialPort, err = serial.Open(serialOpt); err != nil {
+		log.Fatalf("serial port open failure", err)
+	}
+	defer teensySerialPort.Close()
 
 	js, err := joystick.Open(jsid)
 	if err != nil {
-		Logger.WithError(err).Fatalln("fail to init jostick")
+		Logger.WithError(err).Fatalln("fail to init joystick")
 	}
 	defer js.Close()
 
@@ -87,7 +109,11 @@ func main() {
 			tableValue.Rows[5][1] = strconv.Itoa(int(currentTeensyValue.y1))
 			tableValue.Rows[6][1] = strconv.Itoa(int(currentTeensyValue.x2))
 			tableValue.Rows[7][1] = strconv.Itoa(int(currentTeensyValue.y2))
-			tableValue.Rows[8][1] = fmt.Sprintf("%v ", teensyStateToMessage(currentTeensyValue))
+			msg := teensyStateToMessage(currentTeensyValue)
+			tableValue.Rows[8][1] = fmt.Sprintf("%v ", msg)
+			if _, err := teensySerialPort.Write(msg); err != nil {
+				Logger.WithError(err).Errorln("fail to send message")
+			}
 			ui.Render(tableValue)
 		}
 	}
@@ -115,12 +141,13 @@ func bindJoystickToTeensy(joystick *joysticValue, teensy *teensyValue) {
 	teensy.y2 = byte((joystick.Axis2Y + 32767) / 256)
 }
 
-func teensyStateToMessage(teensy teensyValue) [5]byte {
-	var b [5]byte
+func teensyStateToMessage(teensy teensyValue) []byte {
+	var b []byte = make([]byte, 6)
 	b[0] = 0xFF
-	b[1] = teensy.x1
-	b[2] = teensy.y1
-	b[3] = teensy.x2
-	b[4] = teensy.y2
+	b[1] = 0x01
+	b[2] = teensy.x1
+	b[3] = teensy.y1
+	b[4] = teensy.x2
+	b[5] = teensy.y2
 	return b
 }
