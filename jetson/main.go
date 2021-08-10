@@ -2,17 +2,12 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"io"
-	"log"
-	"strconv"
 	"time"
 
 	"github.com/simulatedsimian/joystick"
 	"github.com/sirupsen/logrus"
 
-	ui "github.com/gizak/termui/v3"
-	"github.com/gizak/termui/v3/widgets"
 	"github.com/jacobsa/go-serial/serial"
 )
 
@@ -52,7 +47,7 @@ func main() {
 		MinimumReadSize: 4,
 	}
 	if teensySerialPort, err = serial.Open(serialOpt); err != nil {
-		log.Fatalf("serial port open failure", err)
+		Logger.WithError(err).Fatalf("serial port open failure")
 	}
 	defer teensySerialPort.Close()
 
@@ -68,54 +63,14 @@ func main() {
 		"Button Count": js.ButtonCount(),
 	}).Info("joystick device is opened")
 
-	if err := ui.Init(); err != nil {
-		Logger.WithError(err).Fatalln("failed to init termui")
-	}
-	defer ui.Close()
-
-	tableValue := widgets.NewTable()
-	tableValue.Rows = [][]string{
-		{"Axis1 X", "0"},
-		{"Axis1 Y", "0"},
-		{"Axis2 X", "0"},
-		{"Axis2 Y", "0"},
-		{"Teensy X1", "0"},
-		{"Teensy Y1", "0"},
-		{"Teensy X2", "0"},
-		{"Teensy Y2", "0"},
-		{"Teensy msg", ""},
-	}
-	tableValue.TextStyle = ui.NewStyle(ui.ColorWhite)
-	tableValue.SetRect(0, 0, 40, 19)
-	tableValue.ColumnWidths = []int{10, 30}
-	ui.Render(tableValue)
-	uiEvents := ui.PollEvents()
-	uiRefresh := time.NewTicker(time.Microsecond * 200).C
-
-	go readJoystick(js, 100)
+	go readJoystick(js, 50)
 	for {
-		select {
-		case e := <-uiEvents:
-			switch e.ID {
-			case "q", "<C-c>":
-				return
-			}
-		case <-uiRefresh:
-			tableValue.Rows[0][1] = strconv.Itoa(currentJoystickState.Axis1X)
-			tableValue.Rows[1][1] = strconv.Itoa(currentJoystickState.Axis1Y)
-			tableValue.Rows[2][1] = strconv.Itoa(currentJoystickState.Axis2X)
-			tableValue.Rows[3][1] = strconv.Itoa(currentJoystickState.Axis2Y)
-			tableValue.Rows[4][1] = strconv.Itoa(int(currentTeensyValue.x1))
-			tableValue.Rows[5][1] = strconv.Itoa(int(currentTeensyValue.y1))
-			tableValue.Rows[6][1] = strconv.Itoa(int(currentTeensyValue.x2))
-			tableValue.Rows[7][1] = strconv.Itoa(int(currentTeensyValue.y2))
-			msg := teensyStateToMessage(currentTeensyValue)
-			tableValue.Rows[8][1] = fmt.Sprintf("%v ", msg)
-			if _, err := teensySerialPort.Write(msg); err != nil {
-				Logger.WithError(err).Errorln("fail to send message")
-			}
-			ui.Render(tableValue)
+		time.Sleep(30 * time.Millisecond)
+		msg := teensyStateToMessage(currentTeensyValue)
+		if _, err := teensySerialPort.Write(msg); err != nil {
+			Logger.WithError(err).Fatalln("fail to send message")
 		}
+		Logger.Infof("send : %v#\n", msg)
 	}
 }
 
@@ -135,10 +90,22 @@ func readJoystick(js joystick.Joystick, interval int) {
 }
 
 func bindJoystickToTeensy(joystick *joysticValue, teensy *teensyValue) {
-	teensy.x1 = byte((joystick.Axis1X + 32767) / 256)
-	teensy.y1 = byte((joystick.Axis1Y + 32767) / 256)
-	teensy.x2 = byte((joystick.Axis2X + 32767) / 256)
-	teensy.y2 = byte((joystick.Axis2Y + 32767) / 256)
+	teensy.x1 = 255 - byte((joystick.Axis1X+32767)/256)
+	teensy.y1 = 255 - byte((joystick.Axis1Y+32767)/256)
+	teensy.x2 = 255 - byte((joystick.Axis2X+32767)/256)
+	teensy.y2 = 255 - byte((joystick.Axis2Y+32767)/256)
+	if teensy.x1 >= 255 {
+		teensy.x1 = 254
+	}
+	if teensy.x2 >= 255 {
+		teensy.x2 = 254
+	}
+	if teensy.y1 >= 255 {
+		teensy.y1 = 254
+	}
+	if teensy.y2 >= 255 {
+		teensy.y2 = 254
+	}
 }
 
 func teensyStateToMessage(teensy teensyValue) []byte {
