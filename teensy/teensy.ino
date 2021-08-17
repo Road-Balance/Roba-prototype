@@ -54,8 +54,8 @@ void loop() {
         len = Serial.readBytesUntil(0xFF, (uint8_t*)&buf, 16);
         // buf [1] = a1x, [2] = a1y, [3] = a2x, [4] = a2y
         if (len > 0) {
-            axisLeft = (buf[2] - 128) * 0.05f;
-            axisRight = (buf[4] - 128) * 0.05f;
+            axisLeft = (buf[2] - 128) * 0.01f;
+            axisRight = (buf[4] - 128) * 0.01f;
             odriveFront.SetVelocity(MOTOR_1, axisLeft);
             odriveSerialFront.flush();
             odriveFront.SetVelocity(MOTOR_2, -axisRight);
