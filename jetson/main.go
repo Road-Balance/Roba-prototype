@@ -33,11 +33,17 @@ func main() {
 		jsid, baud int
 		port       string
 		err        error
+		debug      bool
 	)
 	flag.IntVar(&jsid, "id", 0, "joystick device id")
 	flag.StringVar(&port, "sport", "", "serial port")
 	flag.IntVar(&baud, "sbaud", 115200, "serial port baudrate")
+	flag.BoolVar(&debug, "debug", false, "print debug log")
 	flag.Parse()
+
+	if debug {
+		Logger.SetLevel(logrus.DebugLevel)
+	}
 
 	serialOpt := serial.OpenOptions{
 		PortName:        port,
@@ -64,13 +70,28 @@ func main() {
 	}).Info("joystick device is opened")
 
 	go readJoystick(js, 50)
+	go func() {
+		var buf []byte = make([]byte, 32)
+
+		for {
+			n, err := teensySerialPort.Read(buf)
+			if err != nil {
+				Logger.WithError(err).Errorln("fail to read port")
+				continue
+			}
+			if n > 0 {
+				Logger.Infof("recv: %s", string(buf[:n]))
+			}
+			time.Sleep(250 * time.Millisecond)
+		}
+	}()
 	for {
-		time.Sleep(30 * time.Millisecond)
+		time.Sleep(250 * time.Millisecond)
 		msg := teensyStateToMessage(currentTeensyValue)
 		if _, err := teensySerialPort.Write(msg); err != nil {
 			Logger.WithError(err).Fatalln("fail to send message")
 		}
-		Logger.Infof("send : %v#\n", msg)
+		Logger.Debugf("send : %v", msg)
 	}
 }
 

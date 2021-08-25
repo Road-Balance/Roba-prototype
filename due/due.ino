@@ -13,7 +13,13 @@ void setup()
 {
     ODRIVE_FRONT_SERIAL.begin(115200);
     ODRIVE_BACK_SERIAL.begin(115200);
+    Serial.begin(115200);
     Serial.println("INIT,UARTOK");
+
+    OdriveSerialSprintf(ODRIVE_FRONT_SERIAL ,"sr");
+    OdriveSerialSprintf(ODRIVE_BACK_SERIAL ,"sr");
+    delay(500);
+    Serial.println("INIT,REBOOTOK");
 
     setOdriveClosedLoop(ODRIVE_FRONT_SERIAL);
     setOdriveClosedLoop(ODRIVE_BACK_SERIAL);
@@ -24,33 +30,36 @@ void loop()
 {
     byte buf[16];
     byte len;
-    Serial.setTimeout(5);
+    Serial.setTimeout(50);
     float axisLeft, axisRight;
     int i;
+
+    Serial.println("INIT,ENTERLOOP");
     while (true)
     {
+        //Serial.println("LOOP");
         len = Serial.readBytesUntil(0xFF, (uint8_t *)&buf, 16);
         // buf [1] = a1x, [2] = a1y, [3] = a2x, [4] = a2y
         if (len > 0)
         {
             axisLeft = (buf[2] - 128) * 0.01f;
             axisRight = (buf[4] - 128) * 0.01f;
-            setOdriveVelocity(ODRIVE_FRONT_SERIAL, MOTOR_1, axisLeft);
-            setOdriveVelocity(ODRIVE_FRONT_SERIAL, MOTOR_2, -axisRight);
-            setOdriveVelocity(ODRIVE_BACK_SERIAL, MOTOR_1, axisLeft);
-            setOdriveVelocity(ODRIVE_BACK_SERIAL, MOTOR_2, -axisRight);
+            setOdriveVelocity(ODRIVE_FRONT_SERIAL, MOTOR_1, -axisLeft);
+            setOdriveVelocity(ODRIVE_FRONT_SERIAL, MOTOR_2, axisRight);
+            setOdriveVelocity(ODRIVE_BACK_SERIAL, MOTOR_1, -axisLeft);
+            setOdriveVelocity(ODRIVE_BACK_SERIAL, MOTOR_2, axisRight);
         }
 
-        if (readInt(ODRIVE_FRONT_SERIAL, &i, 100) > 0)
+        if (readInt(ODRIVE_FRONT_SERIAL, &i, 50) > 0)
         {
-            Serial.println("front err");
+            Serial.println("ERR,FRONT");
             ODRIVE_FRONT_SERIAL.println("sc");
             delay(50);
             setOdriveClosedLoop(ODRIVE_FRONT_SERIAL);
         }
-        if (readInt(ODRIVE_BACK_SERIAL, &i, 100) > 0)
+        if (readInt(ODRIVE_BACK_SERIAL, &i, 50) > 0)
         {
-            Serial.println("back err");
+            Serial.println("ERR,BACK");
             ODRIVE_BACK_SERIAL.println("sc");
             delay(50);
             setOdriveClosedLoop(ODRIVE_BACK_SERIAL);
@@ -74,6 +83,7 @@ void setOdriveSetState(Stream &port, int axis, int state)
 void setOdriveVelocity(Stream &port, int motorNumber, float velocity)
 {
     OdriveSerialSprintf(port, "v %d %f %f", motorNumber, velocity, 0.0f);
+    delay(10);
 }
 
 void readOdriveVariable(Stream &port, const char *varName)
@@ -99,7 +109,7 @@ void writeOdriveVariable(Stream &port, const char *property, char *value)
 int readFloat(Stream &port, double *ret, int timeout)
 {
     char buf[16];
-    port.setTimeout(timeout * 1000);
+    port.setTimeout(timeout);
     if (port.readBytesUntil('\n', buf, 16) <= 0)
         return -1;
     *ret = atof(buf);
@@ -109,7 +119,7 @@ int readFloat(Stream &port, double *ret, int timeout)
 int readInt(Stream &port, int *ret, int timeout)
 {
     char buf[16];
-    port.setTimeout(timeout * 1000);
+    port.setTimeout(timeout);
     if (port.readBytesUntil('\n', buf, 16) <= 0)
         return -1;
     *ret = atoi(buf);
@@ -119,7 +129,7 @@ int readInt(Stream &port, int *ret, int timeout)
 int readString(Stream &port, char *ret, int timeout)
 {
     char buf[16];
-    port.setTimeout(timeout * 1000);
+    port.setTimeout(timeout);
     if (port.readBytesUntil('\n', buf, 16) <= 0)
         return -1;
     strcpy(ret, buf);
