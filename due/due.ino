@@ -43,7 +43,7 @@ void loop()
         if (len > 0)
         {
             axisLeft = (buf[2] - 128) * 0.01f;
-            axisRight = (buf[4] - 128) * 0.01f;
+            axisRight = (buf[3] - 128) * 0.01f;
             setOdriveVelocity(ODRIVE_FRONT_SERIAL, MOTOR_1, -axisLeft);
             setOdriveVelocity(ODRIVE_FRONT_SERIAL, MOTOR_2, axisRight);
             setOdriveVelocity(ODRIVE_BACK_SERIAL, MOTOR_1, -axisLeft);
