@@ -38,10 +38,25 @@ class SpiderCar(RTCDataChannel):
     async def receiver(self):
         while True:
             self._motion = await self._dc_subscriber.get()
-            print(self._motion)
+            # print(self._motion)
 
             key = self._motion["motion"]["key"]
             val = self._motion["motion"]["value"]
+
+            if key == "forward":
+                self._myCar.AX_1Y = 127 + (val / 20) * 128
+                self._myCar.AX_2Y = 127 + (val / 20) * 128
+            elif key == "back":
+                self._myCar.AX_1Y = 129 - (val / 20) * 128
+                self._myCar.AX_2Y = 129 - (val / 20) * 128
+
+            if key == "left":
+                self._myCar.AX_1Y = 127 - (val / 20) * 128
+                self._myCar.AX_2Y = 129 + (val / 20) * 128
+            elif key == "right":
+                self._myCar.AX_1Y = 129 + (val / 20) * 128
+                self._myCar.AX_2Y = 127 - (val / 20) * 128
+            
 
     async def printGreeting(self, greeting):
         # print(self._motion)
