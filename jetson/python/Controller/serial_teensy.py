@@ -34,12 +34,17 @@ class TeensySender(object):
         self.AX_1X = 129
         self.AX_1Y = 129
         self.AX_2X = 129
-        self.AX_2Y = 254
+        self.AX_2Y = 129
 
         while True:
             # self.AX_1Y = self.AX_1Y + 1 if self.AX_1Y < 255 else 0
 
-            send_msg = bytes([self.AX_1X, self.AX_1Y, self.AX_2X, self.AX_2Y])
+            send_msg = bytes([
+                int(self.AX_1X), 
+                int(self.AX_1Y), 
+                int(self.AX_2X), 
+                int(self.AX_2Y)
+            ])
             send_msg = self._msg_header + send_msg
             print(send_msg)  # You'll catch ASCII Conversion
 
