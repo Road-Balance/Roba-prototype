@@ -86,12 +86,13 @@ func main() {
 		}
 	}()
 	for {
-		time.Sleep(250 * time.Millisecond)
+		time.Sleep(50 * time.Millisecond)
 		msg := teensyStateToMessage(currentTeensyValue)
 		if _, err := teensySerialPort.Write(msg); err != nil {
 			Logger.WithError(err).Fatalln("fail to send message")
 		}
-		Logger.Debugf("send : %v", msg)
+		// Logger.Debugf("send : %v", msg)
+		Logger.Println("send : %v", msg)
 	}
 }
 
@@ -105,6 +106,7 @@ func readJoystick(js joystick.Joystick, interval int) {
 		currentJoystickState.Axis1Y = s.AxisData[1]
 		currentJoystickState.Axis2X = s.AxisData[4]
 		currentJoystickState.Axis2Y = s.AxisData[3]
+
 		bindJoystickToTeensy(&currentJoystickState, &currentTeensyValue)
 		time.Sleep(time.Microsecond * time.Duration(interval))
 	}
@@ -135,7 +137,7 @@ func teensyStateToMessage(teensy teensyValue) []byte {
 	b[1] = 0x01
 	b[2] = teensy.x1
 	b[3] = teensy.y1
-	b[4] = teensy.x2
-	b[5] = teensy.y2
+	b[4] = teensy.y2
+	b[5] = teensy.x2
 	return b
 }
