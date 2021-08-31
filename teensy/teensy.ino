@@ -19,7 +19,8 @@ int odriveCalibration[ODRIVE_CALIBRATION_COUNT] = {
 // odrive[ODRIVE_COUNT] = {odriveFront, odriveBack};
 float left, right;
 
-void setup() {
+void setup()
+{
   Serial.begin(115200);
   odriveSerialFront.begin(115200);
   odriveSerialBack.begin(115200);
@@ -33,6 +34,11 @@ void setup() {
       }
   }
   */
+
+  //yohan modi, reboot odrv
+  odriveSerialFront.write("sr", NULL);
+  odriveSerialBack.write("sr", NULL);
+  delay(300);
 
   Serial.println("cali start");
   odriveFront.run_state(MOTOR_1, ODriveArduino::AXIS_STATE_CLOSED_LOOP_CONTROL,
@@ -53,24 +59,31 @@ void setup() {
   Serial.println("init OK");
 }
 
-void loop() {
+void loop()
+{
   byte buf[16];
   byte len;
   Serial.setTimeout(5);
-  float axisLeft, axisRight;
-  while (true) {
+  float axisLeft = 0.0, axisRight = 0.0;
+  while (true)
+  {
     len = Serial.readBytesUntil(0xFF, (uint8_t *)&buf, 16);
     // buf [1] = a1x, [2] = a1y, [3] = a2x, [4] = a2y
-    if (len > 0) {
+    if (len > 0)
+    {
       axisLeft = (buf[2] - 128) * 0.01f;
       axisRight = (buf[4] - 128) * 0.01f;
-      odriveFront.SetVelocity(MOTOR_1, axisLeft);
+      Serial.printf("axisLeft : ");
+      Serial.println(axisLeft);
+      Serial.printf("axisRight : ");
+      Serial.println(axisRight);
+      odriveFront.SetVelocity(MOTOR_1, -axisLeft);
       odriveSerialFront.flush();
-      odriveFront.SetVelocity(MOTOR_2, -axisRight);
+      odriveFront.SetVelocity(MOTOR_2, axisRight);
       odriveSerialFront.flush();
-      odriveBack.SetVelocity(MOTOR_1, axisLeft);
+      odriveBack.SetVelocity(MOTOR_1, -axisLeft);
       odriveSerialBack.flush();
-      odriveBack.SetVelocity(MOTOR_2, -axisRight);
+      odriveBack.SetVelocity(MOTOR_2, axisRight);
       odriveSerialBack.flush();
     }
   }
