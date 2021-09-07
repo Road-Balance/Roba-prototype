@@ -53,19 +53,25 @@ void loop()
         readOdriveVariable(ODRIVE_FRONT_SERIAL, "error");
         if (readInt(ODRIVE_FRONT_SERIAL, &i, 50) > 0)
         {
-            Serial.println("ERR,FRONT");
-            ODRIVE_FRONT_SERIAL.println("sc");
-            delay(50);
-            setOdriveClosedLoop(ODRIVE_FRONT_SERIAL);
+            if (i != 0)
+            {
+                Serial.println("ERR,FRONT");
+                ODRIVE_FRONT_SERIAL.println("sc");
+                delay(50);
+                setOdriveClosedLoop(ODRIVE_FRONT_SERIAL);
+            }
         }
         delay(50);
         readOdriveVariable(ODRIVE_FRONT_BACK, "error");
         if (readInt(ODRIVE_BACK_SERIAL, &i, 50) > 0)
         {
-            Serial.println("ERR,BACK");
-            ODRIVE_BACK_SERIAL.println("sc");
-            delay(50);
-            setOdriveClosedLoop(ODRIVE_BACK_SERIAL);
+            if (i != 0)
+            {
+                Serial.println("ERR,BACK");
+                ODRIVE_BACK_SERIAL.println("sc");
+                delay(50);
+                setOdriveClosedLoop(ODRIVE_BACK_SERIAL);
+            }
         }
     }
 }
