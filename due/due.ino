@@ -16,8 +16,8 @@ void setup()
     Serial.begin(115200);
     Serial.println("INIT,UARTOK");
 
-    OdriveSerialSprintf(ODRIVE_FRONT_SERIAL ,"sr");
-    OdriveSerialSprintf(ODRIVE_BACK_SERIAL ,"sr");
+    OdriveSerialSprintf(ODRIVE_FRONT_SERIAL, "sr");
+    OdriveSerialSprintf(ODRIVE_BACK_SERIAL, "sr");
     delay(500);
     Serial.println("INIT,REBOOTOK");
 
@@ -50,6 +50,7 @@ void loop()
             setOdriveVelocity(ODRIVE_BACK_SERIAL, MOTOR_2, axisRight);
         }
 
+        readOdriveVariable(ODRIVE_FRONT_SERIAL, "error");
         if (readInt(ODRIVE_FRONT_SERIAL, &i, 50) > 0)
         {
             Serial.println("ERR,FRONT");
@@ -57,6 +58,8 @@ void loop()
             delay(50);
             setOdriveClosedLoop(ODRIVE_FRONT_SERIAL);
         }
+        delay(50);
+        readOdriveVariable(ODRIVE_FRONT_BACK, "error");
         if (readInt(ODRIVE_BACK_SERIAL, &i, 50) > 0)
         {
             Serial.println("ERR,BACK");
