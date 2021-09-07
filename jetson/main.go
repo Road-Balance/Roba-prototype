@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"io"
+	"math"
 	"time"
 
 	"github.com/simulatedsimian/joystick"
@@ -16,7 +18,7 @@ type joysticValue struct {
 }
 
 type teensyValue struct {
-	x1, x2, y1, y2 byte
+	x1, x2, y1, y2 uint16
 }
 
 var (
@@ -25,6 +27,8 @@ var (
 	currentTeensyValue   teensyValue
 	teensySerialPort     io.ReadWriteCloser
 )
+
+var JetsonJoystick []byte = []byte{0, 1, 4, 3}
 
 func main() {
 	Logger = logrus.New()
@@ -71,18 +75,17 @@ func main() {
 
 	go readJoystick(js, 50)
 	go func() {
-		var buf []byte = make([]byte, 32)
-
+		reader := bufio.NewReader(teensySerialPort)
 		for {
-			n, err := teensySerialPort.Read(buf)
+			//time.Sleep(500 * time.Millisecond)
+			line, err := reader.ReadString('\n')
 			if err != nil {
 				Logger.WithError(err).Errorln("fail to read port")
 				continue
 			}
-			if n > 0 {
-				Logger.Infof("recv: %s", string(buf[:n]))
+			if len(line) > 0 {
+				Logger.Infof("recv %d: %s", len(line), line)
 			}
-			time.Sleep(250 * time.Millisecond)
 		}
 	}()
 	for {
@@ -91,8 +94,7 @@ func main() {
 		if _, err := teensySerialPort.Write(msg); err != nil {
 			Logger.WithError(err).Fatalln("fail to send message")
 		}
-		// Logger.Debugf("send : %v", msg)
-		Logger.Println("send : %v", msg)
+		Logger.Debugf("send : %v", msg)
 	}
 }
 
@@ -112,32 +114,36 @@ func readJoystick(js joystick.Joystick, interval int) {
 	}
 }
 
+func intToUint16(i int) uint16 {
+	var v int = (i + math.MaxInt16) / 2
+	if v >= math.MaxUint16 {
+		return math.MaxUint16 - 1
+	}
+	if v <= 0 {
+		return 0
+	}
+	return uint16(v)
+}
+
 func bindJoystickToTeensy(joystick *joysticValue, teensy *teensyValue) {
-	teensy.x1 = 255 - byte((joystick.Axis1X+32767)/256)
-	teensy.y1 = 255 - byte((joystick.Axis1Y+32767)/256)
-	teensy.x2 = 255 - byte((joystick.Axis2X+32767)/256)
-	teensy.y2 = 255 - byte((joystick.Axis2Y+32767)/256)
-	if teensy.x1 >= 255 {
-		teensy.x1 = 254
-	}
-	if teensy.x2 >= 255 {
-		teensy.x2 = 254
-	}
-	if teensy.y1 >= 255 {
-		teensy.y1 = 254
-	}
-	if teensy.y2 >= 255 {
-		teensy.y2 = 254
-	}
+	teensy.x1 = intToUint16(joystick.Axis1X)
+	teensy.y1 = intToUint16(joystick.Axis1Y)
+	teensy.x2 = intToUint16(joystick.Axis2X)
+	teensy.y2 = intToUint16(joystick.Axis2Y)
 }
 
 func teensyStateToMessage(teensy teensyValue) []byte {
-	var b []byte = make([]byte, 6)
+	var b []byte = make([]byte, 10)
 	b[0] = 0xFF
 	b[1] = 0x01
-	b[2] = teensy.x1
-	b[3] = teensy.y1
-	b[4] = teensy.y2
-	b[5] = teensy.x2
+	b[2] = byte(teensy.x1 >> 8)
+	b[3] = byte(teensy.x1 & 255)
+	b[4] = byte(teensy.y1 >> 8)
+	b[5] = byte(teensy.y1 & 255)
+	b[6] = byte(teensy.x2 >> 8)
+	b[7] = byte(teensy.x2 & 255)
+	b[8] = byte(teensy.y2 >> 8)
+	b[9] = byte(teensy.y2 & 255)
+
 	return b
 }
