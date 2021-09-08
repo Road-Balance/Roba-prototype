@@ -89,7 +89,7 @@ func main() {
 		}
 	}()
 	for {
-		time.Sleep(50 * time.Millisecond)
+		time.Sleep(330 * time.Millisecond)
 		msg := teensyStateToMessage(currentTeensyValue)
 		if _, err := teensySerialPort.Write(msg); err != nil {
 			Logger.WithError(err).Fatalln("fail to send message")
@@ -115,7 +115,7 @@ func readJoystick(js joystick.Joystick, interval int) {
 }
 
 func intToUint16(i int) uint16 {
-	var v int = (i + math.MaxInt16) / 2
+	var v int = (i + math.MaxInt16)
 	if v >= math.MaxUint16 {
 		return math.MaxUint16 - 1
 	}
@@ -132,18 +132,26 @@ func bindJoystickToTeensy(joystick *joysticValue, teensy *teensyValue) {
 	teensy.y2 = intToUint16(joystick.Axis2Y)
 }
 
+func supressByte(i uint16) byte {
+	b := byte(i)
+	if b >= 255 {
+		return 254
+	}
+	return b
+}
+
 func teensyStateToMessage(teensy teensyValue) []byte {
 	var b []byte = make([]byte, 10)
 	b[0] = 0xFF
 	b[1] = 0x01
-	b[2] = byte(teensy.x1 >> 8)
-	b[3] = byte(teensy.x1 & 255)
-	b[4] = byte(teensy.y1 >> 8)
-	b[5] = byte(teensy.y1 & 255)
-	b[6] = byte(teensy.x2 >> 8)
-	b[7] = byte(teensy.x2 & 255)
-	b[8] = byte(teensy.y2 >> 8)
-	b[9] = byte(teensy.y2 & 255)
+	b[2] = supressByte(teensy.x1 >> 8)
+	b[3] = supressByte(teensy.x1 & 255)
+	b[4] = supressByte(teensy.y1 >> 8)
+	b[5] = supressByte(teensy.y1 & 255)
+	b[6] = supressByte(teensy.x2 >> 8)
+	b[7] = supressByte(teensy.x2 & 255)
+	b[8] = supressByte(teensy.y2 >> 8)
+	b[9] = supressByte(teensy.y2 & 255)
 
 	return b
 }
