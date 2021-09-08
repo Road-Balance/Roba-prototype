@@ -34,7 +34,8 @@ void loop()
     byte buf[16];
     byte len;
     Serial.setTimeout(5);
-    float axisLeft, axisRight;
+    float axisLeftY, axisRightY, axisRightX;
+    float offsetLeft, offsetRight;
     double vbusf, vbusb;
 
     Serial.println("INIT,ENTERLOOP");
@@ -42,19 +43,31 @@ void loop()
     {
         //Serial.println("LOOP");
         len = Serial.readBytesUntil(0xFF, (uint8_t *)&buf, 16);
-        // buf [2, 3] = a1x, [4, 5] = a1y, [6, 7] = a2x, [8, 9] = a2y
+        // buf [1, 2] = a1x, [3, 4] = a1y, [5, 6] = a2x, [7, 8] = a2y
         if (len == 9)
         {
-            axisLeft = ((buf[3] * 255 + buf[4]) - 32767) * 0.0001f;
-            axisRight = ((buf[7] * 255 + buf[8]) - 32767) * 0.0001f;
+            axisLeftY = ((buf[3] * 255 + buf[4]) - 32767) * 0.0001f;
+            axisRightX = ((buf[5] * 255 + buf[6]) - 32767) * 0.0001f;
+            axisRightY = ((buf[7] * 255 + buf[8]) - 32767) * 0.0001f;
 
-            setOdriveVelocity(ODRIVE_FRONT_SERIAL, MOTOR_1, -axisLeft);
+            if (axisRightX > 0)
+            {
+                offsetLeft = axisRightX;
+                offsetRight = 0;
+            }
+            else
+            {
+                offsetLeft = 0;
+                offsetRight = -axisRightX;
+            }
+
+            setOdriveVelocity(ODRIVE_FRONT_SERIAL, MOTOR_1, -axisLeftY - offsetLeft);
             delay(SERIAL_DELAY);
-            setOdriveVelocity(ODRIVE_FRONT_SERIAL, MOTOR_2, axisRight);
+            setOdriveVelocity(ODRIVE_FRONT_SERIAL, MOTOR_2, axisLeftY + offsetRight);
             delay(SERIAL_DELAY);
-            setOdriveVelocity(ODRIVE_BACK_SERIAL, MOTOR_1, -axisLeft);
+            setOdriveVelocity(ODRIVE_BACK_SERIAL, MOTOR_1, -axisLeftY - offsetLeft);
             delay(SERIAL_DELAY);
-            setOdriveVelocity(ODRIVE_BACK_SERIAL, MOTOR_2, axisRight);
+            setOdriveVelocity(ODRIVE_BACK_SERIAL, MOTOR_2, axisLeftY + offsetRight);
             delay(SERIAL_DELAY);
         }
 
@@ -92,7 +105,7 @@ void loop()
             vbusb = -1;
             Serial.println("ERR,BACKREAD");
         }
-        OdriveSerialSprintf(CONTROL_SERIAL, "loop: fvbus=%f bvbus=%f al=%f ar=%f\n", vbusf, vbusb, axisLeft, axisRight);
+        OdriveSerialSprintf(CONTROL_SERIAL, "loop: fvbus=%f bvbus=%f al=%f ar=%f\n", vbusf, vbusb, axisLeftY, axisRightX);
     }
 }
 
