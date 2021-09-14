@@ -58,13 +58,13 @@ void loop() {
       }
 
       setOdriveVelocity(ODRIVE_FRONT_SERIAL, MOTOR_1, -axisLeftY - offsetLeft);
-      //delay(SERIAL_DELAY);
+      // delay(SERIAL_DELAY);
       setOdriveVelocity(ODRIVE_FRONT_SERIAL, MOTOR_2, axisLeftY + offsetRight);
-      //delay(SERIAL_DELAY);
+      // delay(SERIAL_DELAY);
       setOdriveVelocity(ODRIVE_BACK_SERIAL, MOTOR_1, -axisLeftY - offsetLeft);
-      //delay(SERIAL_DELAY);
+      // delay(SERIAL_DELAY);
       setOdriveVelocity(ODRIVE_BACK_SERIAL, MOTOR_2, axisLeftY + offsetRight);
-      //delay(SERIAL_DELAY);
+      // delay(SERIAL_DELAY);
     }
 
     // readOdriveVariable(ODRIVE_FRONT_SERIAL, "vbus_voltage");
