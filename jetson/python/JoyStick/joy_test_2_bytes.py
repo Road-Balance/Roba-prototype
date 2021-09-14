@@ -3,7 +3,7 @@ import serial
 import asyncio
 
 
-port_name="/dev/ttyACM1"
+port_name="/dev/ttyACM0"
 baud_rate=115200
 pub_period=0.5
 
@@ -31,6 +31,7 @@ class JoySerialSenderTwoBytes(object):
 
         self.msg_header = bytes([255, 1])
         self._loop = asyncio.get_event_loop()
+        self.send_msg = bytes()
 
     def parse2Bytes(self, integer_val):
         output = bytes()
@@ -63,6 +64,12 @@ class JoySerialSenderTwoBytes(object):
 
         return output
 
+    async def sendBytes(self):
+        while True:
+            self._ser.write(self.send_msg)
+            print("======================")
+            print(self.send_msg)
+            await asyncio.sleep(0.01)
 
     async def joyLoop(self):
         while True:
@@ -80,17 +87,14 @@ class JoySerialSenderTwoBytes(object):
                     self.joyDict[event.code] = -joy_val + 32767
 
                     payload = self.parseJoyDict()
-                    send_msg = self.msg_header + payload
-                    self._ser.write(send_msg)
+                    self.send_msg = self.msg_header + payload
 
-                    print("======================")
-                    print(send_msg)
-
-                    await asyncio.sleep(0)
+                    await asyncio.sleep(0.01)
 
     def run(self):
         try:
             asyncio.ensure_future(self.joyLoop())
+            asyncio.ensure_future(self.sendBytes())
             self._loop.run_forever()
         except KeyboardInterrupt:
             pass

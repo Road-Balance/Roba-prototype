@@ -8,7 +8,7 @@
 #define MOTOR_1 0
 #define MOTOR_2 1
 
-#define SERIAL_DELAY 2
+#define SERIAL_DELAY 10
 
 int axises[2] = {MOTOR_1, MOTOR_2};
 
@@ -26,6 +26,7 @@ void setup() {
   setOdriveClosedLoop(ODRIVE_FRONT_SERIAL);
   setOdriveClosedLoop(ODRIVE_BACK_SERIAL);
   Serial.println("INIT,SETSTATEOK");
+  delay(2000);
 }
 
 void loop() {
@@ -58,13 +59,13 @@ void loop() {
       }
 
       setOdriveVelocity(ODRIVE_FRONT_SERIAL, MOTOR_1, -axisLeftY - offsetLeft);
-      // delay(SERIAL_DELAY);
+      delay(SERIAL_DELAY);
       setOdriveVelocity(ODRIVE_FRONT_SERIAL, MOTOR_2, axisLeftY + offsetRight);
-      // delay(SERIAL_DELAY);
+      delay(SERIAL_DELAY);
       setOdriveVelocity(ODRIVE_BACK_SERIAL, MOTOR_1, -axisLeftY - offsetLeft);
-      // delay(SERIAL_DELAY);
+      delay(SERIAL_DELAY);
       setOdriveVelocity(ODRIVE_BACK_SERIAL, MOTOR_2, axisLeftY + offsetRight);
-      // delay(SERIAL_DELAY);
+      delay(SERIAL_DELAY);
     }
 
     // readOdriveVariable(ODRIVE_FRONT_SERIAL, "vbus_voltage");

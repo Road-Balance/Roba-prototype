@@ -3,7 +3,7 @@ import serial
 import asyncio
 
 
-port_name="/dev/ttyACM1"
+port_name="/dev/ttyACM0"
 baud_rate=115200
 pub_period=0.5
 
