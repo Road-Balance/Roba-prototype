@@ -65,36 +65,40 @@ class JoySerialSenderTwoBytes(object):
         return output
 
     async def sendBytes(self):
+        self._ser.write(self.send_msg)
+        print("======================")
+        print(self.send_msg)
+
+    async def sendBytesExecutor(self):
         while True:
-            self._ser.write(self.send_msg)
-            print("======================")
-            print(self.send_msg)
-            await asyncio.sleep(0.01)
+            await self._loop.run_in_executor(None, self.sendBytes)
 
-    async def joyLoop(self):
+    def joyLoop(self):
+        events = inputs.get_gamepad()
+        for event in events:
+            if event.code in self.joyDict:
+
+                # 뭔짓을 하다 돌아와도 0으로 되게
+                if event.state < 1024 and event.state > -1024:
+                    joy_val = 0
+                else:
+                    joy_val = event.state
+
+                # TODO : 좌끝 => 65535 우끝 => 0 이다.
+                self.joyDict[event.code] = -joy_val + 32767
+
+                payload = self.parseJoyDict()
+                self.send_msg = self.msg_header + payload
+
+    async def joyLoopExecutor(self):
         while True:
-            events = inputs.get_gamepad()
-            for event in events:
-                if event.code in self.joyDict:
+            await self._loop.run_in_executor(None, self.joyLoop)
 
-                    # 뭔짓을 하다 돌아와도 0으로 되게
-                    if event.state < 1024 and event.state > -1024:
-                        joy_val = 0
-                    else:
-                        joy_val = event.state
-
-                    # TODO : 좌끝 => 65535 우끝 => 0 이다.
-                    self.joyDict[event.code] = -joy_val + 32767
-
-                    payload = self.parseJoyDict()
-                    self.send_msg = self.msg_header + payload
-
-                    await asyncio.sleep(0.01)
 
     def run(self):
         try:
-            asyncio.ensure_future(self.joyLoop())
-            asyncio.ensure_future(self.sendBytes())
+            asyncio.ensure_future(self.joyLoopExecutor())
+            asyncio.ensure_future(self.sendBytesExecutor())
             self._loop.run_forever()
         except KeyboardInterrupt:
             pass

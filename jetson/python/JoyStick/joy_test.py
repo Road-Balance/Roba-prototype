@@ -47,28 +47,29 @@ class JoySerialSenderTwoBytes(object):
         return output
 
     async def joyLoop(self):
+        events = inputs.get_gamepad()
+        for event in events:
+            if event.code in self.joyDict:
+
+                # 뭔짓을 하다 돌아와도 0으로 되게
+                if event.state < 1024 and event.state > -1024:
+                    joy_val = 0
+                else:
+                    joy_val = event.state
+
+                # TODO : 좌끝 => 65535 우끝 => 0 이다.
+                self.joyDict[event.code] = -joy_val + 32767
+
+                payload = self.parseJoyDict()
+                send_msg = self.msg_header + payload
+                self._ser.write(send_msg)
+
+                print("======================")
+                print(send_msg)
+
+    async def joyLoopExecutor(self):
         while True:
-            events = inputs.get_gamepad()
-            for event in events:
-                if event.code in self.joyDict:
-
-                    # 뭔짓을 하다 돌아와도 0으로 되게
-                    if event.state < 1024 and event.state > -1024:
-                        joy_val = 0
-                    else:
-                        joy_val = event.state
-
-                    # TODO : 좌끝 => 65535 우끝 => 0 이다.
-                    self.joyDict[event.code] = -joy_val + 32767
-
-                    payload = self.parseJoyDict()
-                    send_msg = self.msg_header + payload
-                    self._ser.write(send_msg)
-
-                    print("======================")
-                    print(send_msg)
-
-                    await asyncio.sleep(0)
+            await self._loop.run_in_executor(None, self.joyLoop)
 
     def run(self):
         try:
