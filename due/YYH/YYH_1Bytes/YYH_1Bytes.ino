@@ -66,15 +66,15 @@ void loop() {
 
       if (axisLeftY > 0.02f) //전진
       {
-        Serial.println(
-            "frontOK"); //여기서 axisLeftY뒤에 세미콜론이 찍혀있었다..
+        Serial.println("frontOK");  
+        //여기서 axisLeftY뒤에 세미콜론이 찍혀있었다..
         FR = axisLeftY - p * axisRightX; //우측 전륜
         RR = axisLeftY - p * axisRightX; //우측 후륜
         FL = axisLeftY + p * axisRightX; //좌측 전륜
         RL = axisLeftY + p * axisRightX; //좌측 후륜
       }
 
-      if (axisLeftY < -0.02f) //후진
+      else if (axisLeftY < -0.02f) //후진
       {
         Serial.println("RearOK");
         FR = axisLeftY - p * axisRightX;
@@ -90,6 +90,16 @@ void loop() {
         FL = -axisRightX;
         RL = -axisRightX;
       }
+
+      Serial.print(FR);
+      Serial.print(" ");
+      Serial.print(RR);
+      Serial.print(" ");
+      Serial.print(FL);
+      Serial.print(" ");
+      Serial.print(RL);
+      Serial.print(" ");
+      Serial.println();
 
       setOdriveVelocity(ODRIVE_FRONT_SERIAL, MOTOR_1, FR);
       // delay(SERIAL_DELAY);
