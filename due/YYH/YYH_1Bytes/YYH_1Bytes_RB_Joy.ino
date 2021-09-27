@@ -54,7 +54,7 @@ void loop() {
       raw_a2x = buf[3] - 127;
       // -127 ~ +127
       axisLeftY = (raw_a1y)*0.02f;
-      axisRightX = (raw_a2x)*0.02f;
+      axisRightX = (raw_a2x)*0.01f;
       //사용안함 axisRightY = ((buf[7] * 255 + buf[8]) - 32767) * 0.0001f;
       Serial.print(raw_a1y);
       Serial.print(" ");
@@ -66,32 +66,10 @@ void loop() {
 
       Serial.println();
 
-      // if (axisLeftY > 0.02f) //전진
-      // {
-      //   Serial.println("frontOK");
-      //   //여기서 axisLeftY뒤에 세미콜론이 찍혀있었다..
-      //   FR = axisLeftY - p * axisRightX; //우측 전륜
-      //   RR = axisLeftY - p * axisRightX; //우측 후륜
-      //   FL = axisLeftY + p * axisRightX; //좌측 전륜
-      //   RL = axisLeftY + p * axisRightX; //좌측 후륜
-      // }
-
-      // else if (axisLeftY < -0.02f) //후진
-      // {
-      //   Serial.println("RearOK");
-      //   FR = axisLeftY - p * axisRightX;
-      //   RR = axisLeftY - p * axisRightX;
-      //   FL = axisLeftY + p * axisRightX;
-      //   RL = axisLeftY + p * axisRightX;
-      // }
-
-      // else //탱크턴
-      // {
-      //   FR = axisRightX;
-      //   RR = axisRightX;
-      //   FL = -axisRightX;
-      //   RL = -axisRightX;
-      // }
+      FL = axisLeftY;
+      RL = axisLeftY;
+      FR = axisLeftY * axisRightX;
+      RR = axisLeftY * axisRightX;
 
       Serial.print(FR);
       Serial.print(" ");

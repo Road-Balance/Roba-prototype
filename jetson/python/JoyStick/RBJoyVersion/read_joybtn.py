@@ -34,7 +34,8 @@ class JoySerialSenderTwoBytes(object):
         self.msg_header = bytes([255, 1])
         self._loop = asyncio.get_event_loop()
 
-        self.STEP = 4
+        self.THROTTLE_STEP = 25
+        self.STEERING_STEP = 10
 
     def parseJoyDict(self):
 
@@ -60,30 +61,30 @@ class JoySerialSenderTwoBytes(object):
                         self.joyDict['prev_HAT0X'] = event.state
 
                     if self.joyDict['prev_HAT0X'] == -1 and event.state == 0:
-                        if self.serial_msg[2] >= 251:
-                            self.serial_msg[2] = 255
-                        else:
-                            self.serial_msg[2] -= self.STEP
-                    elif self.joyDict['prev_HAT0X'] == +1 and event.state == 0:
-                        if self.serial_msg[2] <= 3:
+                        if self.serial_msg[2] <= 10:
                             self.serial_msg[2] = 0
                         else:
-                            self.serial_msg[2] += self.STEP
+                            self.serial_msg[2] -= self.STEERING_STEP
+                    elif self.joyDict['prev_HAT0X'] == +1 and event.state == 0:
+                        if self.serial_msg[2] >= 245:
+                            self.serial_msg[2] = 255
+                        else:
+                            self.serial_msg[2] += self.STEERING_STEP
 
                 elif event.code == 'ABS_HAT0Y':
                     if event.state != 0:
                         self.joyDict['prev_HAT0Y'] = event.state
 
-                    if self.joyDict['prev_HAT0Y'] == -1 and event.state == 0:
-                        if self.serial_msg[1] >= 251:
-                            self.serial_msg[1] = 255
-                        else:
-                            self.serial_msg[1] += self.STEP
-                    elif self.joyDict['prev_HAT0Y'] == +1 and event.state == 0:
-                        if self.serial_msg[1] <= 3:
+                    if self.joyDict['prev_HAT0Y'] == +1 and event.state == 0:
+                        if self.serial_msg[1] <= 25:
                             self.serial_msg[1] = 0
                         else:
-                            self.serial_msg[1] -= self.STEP
+                            self.serial_msg[1] -= self.THROTTLE_STEP
+                    elif self.joyDict['prev_HAT0Y'] == -1 and event.state == 0:
+                        if self.serial_msg[1] >= 230:
+                            self.serial_msg[1] = 255
+                        else:
+                            self.serial_msg[1] += self.THROTTLE_STEP
                     
                 # if event.state == 0
                 #     self.btnState[event.code] = True
