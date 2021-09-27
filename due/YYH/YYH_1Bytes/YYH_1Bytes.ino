@@ -40,7 +40,8 @@ void loop() {
 
   // 추후 axisLeftY +- p*axisRightX의 값이 axisLeftY의 부호를 그대로 따라가야
   // 함. 1/2.55 = 0.38...
-  float p = 1; // 0.38f * axisLeftY;
+//  float p = 1; // 0.38f * axisLeftY;
+  float p = 0.38f * axisLeftY;
   float FL, RL, FR, RR;
 
   Serial.println("INIT,ENTERLOOP");
