@@ -40,7 +40,7 @@ void loop() {
 
   // 추후 axisLeftY +- p*axisRightX의 값이 axisLeftY의 부호를 그대로 따라가야
   // 함. 1/2.55 = 0.38...
-//  float p = 1; // 0.38f * axisLeftY;
+  // float p = 1;
   float p = 0.38f * axisLeftY;
   float FL, RL, FR, RR;
 
@@ -67,7 +67,7 @@ void loop() {
 
       if (axisLeftY > 0.02f) //전진
       {
-        Serial.println("frontOK");  
+        Serial.println("frontOK");
         //여기서 axisLeftY뒤에 세미콜론이 찍혀있었다..
         FR = axisLeftY - p * axisRightX; //우측 전륜
         RR = axisLeftY - p * axisRightX; //우측 후륜
