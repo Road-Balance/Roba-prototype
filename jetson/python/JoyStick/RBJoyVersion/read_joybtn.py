@@ -3,7 +3,7 @@ import serial
 import asyncio
 
 
-port_name="/dev/ttyACM1"
+port_name="/dev/ttyACM0"
 baud_rate=115200
 pub_period=0.5
 
@@ -27,9 +27,9 @@ class JoySerialSenderTwoBytes(object):
         if len(pads) == 0:
             raise Exception("Couldn't find any Gamepads!")
     
-        # self._ser = serial.Serial(port_name, baud_rate, timeout=10)
-        # if self._ser.name != port_name:
-        #     raise Exception("Couldn't find MCU!")
+        self._ser = serial.Serial(port_name, baud_rate, timeout=10)
+        if self._ser.name != port_name:
+            raise Exception("Couldn't find MCU!")
 
         self.msg_header = bytes([255, 1])
         self._loop = asyncio.get_event_loop()
@@ -91,7 +91,7 @@ class JoySerialSenderTwoBytes(object):
 
             payload = self.parseJoyDict()
             send_msg = self.msg_header + payload
-            # self._ser.write(send_msg)
+            self._ser.write(send_msg)
 
             print(self.serial_msg)
             print(send_msg)
