@@ -50,15 +50,15 @@ void loop() {
     len = Serial.readBytesUntil(0xFF, (uint8_t *)&buf, 16);
     // buf [1, 2] = a1x, [3, 4] = a1y, [5, 6] = a2x, [7, 8] = a2y
     if (len > 0) {
-      raw_a1y = buf[2] - 127;
-      raw_a2x = buf[3] - 127;
+      raw_a1y = buf[2] - 128;
+      raw_a2x = buf[3] - 128;
       // -127 ~ +127
       axisLeftY = (raw_a1y)*0.02f;
       axisRightX = (raw_a2x)*0.01f;
       //사용안함 axisRightY = ((buf[7] * 255 + buf[8]) - 32767) * 0.0001f;
-      Serial.print(raw_a1y);
+      Serial.print(buf[2]);
       Serial.print(" ");
-      Serial.println(raw_a2x);
+      Serial.println(buf[3]);
 
       Serial.print(axisLeftY);
       Serial.print(" ");

@@ -3,7 +3,7 @@ import serial
 import asyncio
 
 
-port_name="/dev/ttyACM0"
+port_name="/dev/ttyACM1"
 baud_rate=115200
 pub_period=0.5
 
@@ -16,7 +16,7 @@ class JoySerialSenderTwoBytes(object):
         'ABS_HAT0Y': 0,
     }
     
-    serial_msg = [127, 127, 127, 127]
+    serial_msg = [128, 128, 128, 128]
 
     def __init__(self):
         super().__init__()
@@ -61,13 +61,13 @@ class JoySerialSenderTwoBytes(object):
                         self.joyDict['prev_HAT0X'] = event.state
 
                     if self.joyDict['prev_HAT0X'] == -1 and event.state == 0:
-                        if self.serial_msg[2] <= 10:
+                        if self.serial_msg[2] <= self.STEERING_STEP:
                             self.serial_msg[2] = 0
                         else:
                             self.serial_msg[2] -= self.STEERING_STEP
                     elif self.joyDict['prev_HAT0X'] == +1 and event.state == 0:
-                        if self.serial_msg[2] >= 245:
-                            self.serial_msg[2] = 255
+                        if self.serial_msg[2] >= 255 - self.STEERING_STEP:
+                            self.serial_msg[2] = 254
                         else:
                             self.serial_msg[2] += self.STEERING_STEP
 
@@ -76,13 +76,13 @@ class JoySerialSenderTwoBytes(object):
                         self.joyDict['prev_HAT0Y'] = event.state
 
                     if self.joyDict['prev_HAT0Y'] == +1 and event.state == 0:
-                        if self.serial_msg[1] <= 25:
+                        if self.serial_msg[1] <= self.THROTTLE_STEP:
                             self.serial_msg[1] = 0
                         else:
                             self.serial_msg[1] -= self.THROTTLE_STEP
                     elif self.joyDict['prev_HAT0Y'] == -1 and event.state == 0:
-                        if self.serial_msg[1] >= 230:
-                            self.serial_msg[1] = 255
+                        if self.serial_msg[1] >= 255 - self.THROTTLE_STEP:
+                            self.serial_msg[1] = 254
                         else:
                             self.serial_msg[1] += self.THROTTLE_STEP
                     
@@ -90,13 +90,14 @@ class JoySerialSenderTwoBytes(object):
                 #     self.btnState[event.code] = True
 
             elif event.code == 'BTN_SOUTH':
-                self.serial_msg = [127,127,127,127]
+                self.serial_msg = [128,128,128,128]
 
             payload = self.parseJoyDict()
             send_msg = self.msg_header + payload
             self._ser.write(send_msg)
 
             print(self.serial_msg)
+            print(send_msg)
 
                 # if event.code
             #     # 뭔짓을 하다 돌아와도 0으로 되게

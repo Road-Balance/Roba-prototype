@@ -3,7 +3,7 @@ import serial
 import asyncio
 
 
-port_name="/dev/ttyACM0"
+port_name="/dev/ttyACM1"
 baud_rate=115200
 pub_period=0.5
 
@@ -15,6 +15,14 @@ class JoySerialSenderTwoBytes(object):
         'ABS_Z': 127,
         'ABS_RZ': 127,
     }
+
+    prevjoyDict = {
+        'ABS_X': 127,
+        'ABS_Y': 127,
+        'ABS_Z': 127,
+        'ABS_RZ': 127,
+    }
+    STEP = 10
 
     def __init__(self):
         super().__init__()
@@ -57,17 +65,33 @@ class JoySerialSenderTwoBytes(object):
             #         joy_val = 0
             #     else:
                     # joy_val = event.state
-
                 if event.code == "ABS_Y" or event.code == "ABS_RZ":
                     event.state =  - event.state + 255
-                self.joyDict[event.code] = event.state
 
-                payload = self.parseJoyDict()
-                send_msg = self.msg_header + payload
-                self._ser.write(send_msg)
+                if abs(self.prevjoyDict[event.code] - event.state) > self.STEP:
+                    print('abs')
+                    print(self.prevjoyDict[event.code], event.state)
+                    if event.state == 255:
+                        event.state = 254
+                    self.joyDict[event.code] = event.state
 
-                print("======================")
-                print(send_msg)
+                    self.prevjoyDict[event.code] = event.state
+
+                    payload = self.parseJoyDict()
+                    send_msg = self.msg_header + payload
+                    self._ser.write(send_msg)
+                    
+                    print("======================")
+                    print(send_msg)
+                else:
+                    continue
+                
+            elif event.code == 'BTN_SOUTH':
+                for key in self.joyDict.keys():
+                    self.joyDict[key] = 128
+
+
+
 
     async def joyLoopExecutor(self):
         while True:
