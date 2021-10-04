@@ -43,10 +43,9 @@ void loop() {
   // float p = 1;
   // float p = 0.38f * axisLeftY;
   float FL, RL, FR, RR;
-  float THR, STR,
-      k
+  float THR, STR, k;
 
-          Serial.println("INIT,ENTERLOOP");
+  Serial.println("INIT,ENTERLOOP");
   while (true) {
     // Serial.println("LOOP");
     len = Serial.readBytesUntil(0xFF, (uint8_t *)&buf, 16);
@@ -85,13 +84,12 @@ void loop() {
         RR = THR - STR;
       }
       //탱크턴
-      else
-        () {
-          FL = axisRightX * 2.0f;
-          RL = axisRightX * 2.0f;
-          FR = -axisRightX * 2.0f;
-          RR = -axisRightX * 2.0f;
-        }
+      else {
+        FL = axisRightX * 2.0f;
+        RL = axisRightX * 2.0f;
+        FR = -axisRightX * 2.0f;
+        RR = -axisRightX * 2.0f;
+      }
 
       Serial.print(FR);
       Serial.print(" ");
