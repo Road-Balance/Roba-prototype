@@ -12,15 +12,15 @@ class JoySerialSenderTwoBytes(object):
     joyDict = {
         'ABS_X': 127,
         'ABS_Y': 127,
-        'ABS_Z': 127,
-        'ABS_RZ': 127,
+        'ABS_RX': 127,
+        'ABS_RY': 127,
     }
 
     prevjoyDict = {
         'ABS_X': 127,
         'ABS_Y': 127,
-        'ABS_Z': 127,
-        'ABS_RZ': 127,
+        'ABS_RX': 127,
+        'ABS_RY': 127,
     }
     STEP = 10
 
@@ -33,9 +33,9 @@ class JoySerialSenderTwoBytes(object):
         if len(pads) == 0:
             raise Exception("Couldn't find any Gamepads!")
     
-        self._ser = serial.Serial(port_name, baud_rate, timeout=10)
-        if self._ser.name != port_name:
-            raise Exception("Couldn't find MCU!")
+        # self._ser = serial.Serial(port_name, baud_rate, timeout=10)
+        # if self._ser.name != port_name:
+        #     raise Exception("Couldn't find MCU!")
 
         self.msg_header = bytes([255, 1])
         self._loop = asyncio.get_event_loop()
@@ -59,38 +59,33 @@ class JoySerialSenderTwoBytes(object):
         events = inputs.get_gamepad()
         for event in events:
             # print(event.code, event.state)
+
             if event.code in self.joyDict:
-            #     # 뭔짓을 하다 돌아와도 0으로 되게
-            #     if event.state < 1024 and event.state > -1024:
-            #         joy_val = 0
-            #     else:
-                    # joy_val = event.state
-                if event.code == "ABS_Y" or event.code == "ABS_RZ":
-                    event.state =  - event.state + 255
+                if event.code == "ABS_Y" or event.code == "ABS_RY":
+                    event.state = - event.state + 255 - 1
+                event.state = min(int((event.state + 32768) / 256), 254) 
+
+            # #     # 뭔짓을 하다 돌아와도 0으로 되게
+            # #     if event.state < 1024 and event.state > -1024:
+            # #         joy_val = 0
+            # #     else:
+            #         # joy_val = event.state
 
                 if abs(self.prevjoyDict[event.code] - event.state) > self.STEP:
-                    print('abs')
-                    print(self.prevjoyDict[event.code], event.state)
-                    if event.state == 255:
-                        event.state = 254
                     self.joyDict[event.code] = event.state
-
                     self.prevjoyDict[event.code] = event.state
 
                     payload = self.parseJoyDict()
                     send_msg = self.msg_header + payload
-                    self._ser.write(send_msg)
-                    
-                    print("======================")
-                    print(send_msg)
+                    # self._ser.write(send_msg)
+                    # print("======================")
+                    # print(send_msg)
                 else:
                     continue
                 
-            elif event.code == 'BTN_SOUTH':
+            elif event.code == 'BTN_NORTH':
                 for key in self.joyDict.keys():
                     self.joyDict[key] = 128
-
-
 
 
     async def joyLoopExecutor(self):
