@@ -79,7 +79,7 @@ void loop() {
       // Serial.println();
 
       //전후진 && 조향, 추후 axis제어시 데드존 필요
-      if (THR != 0.0f) {
+      if (abs(THR) > 0.06f ) {
         FL = THR + STR;
         RL = THR + STR;
         FR = THR - STR;
@@ -87,13 +87,15 @@ void loop() {
       }
       //탱크턴
       else {
+        if (abs(axisRightX) <= 0.05)
+          axisRightX = 0.0f;
         FL = axisRightX * 2.0f;
         RL = axisRightX * 2.0f;
         FR = -axisRightX * 2.0f;
         RR = -axisRightX * 2.0f;
       }
-      TQ_FORWARD = buf[5] / 10;
-      TQ_BACKWARD = buf[6] / 10;
+      TQ_FORWARD = buf[5] / 10.0;
+      TQ_BACKWARD = buf[6] / 10.0;
 
       Serial.print(FR);
       Serial.print(" ");
@@ -102,6 +104,7 @@ void loop() {
       Serial.print(FL);
       Serial.print(" ");
       Serial.print(RL);
+
       Serial.print(" / ");
       Serial.print(TQ_FORWARD);
       Serial.print(" ");
@@ -109,13 +112,13 @@ void loop() {
       Serial.print(" ");
       Serial.println();
 
-      setOdriveVelocity(ODRIVE_FRONT_SERIAL, MOTOR_1, FR, );
+      setOdriveVelocity(ODRIVE_FRONT_SERIAL, MOTOR_1, FR, TQ_FORWARD);
       // delay(SERIAL_DELAY);
-      setOdriveVelocity(ODRIVE_FRONT_SERIAL, MOTOR_2, -FL, );
+      setOdriveVelocity(ODRIVE_FRONT_SERIAL, MOTOR_2, -FL, TQ_FORWARD);
       // delay(SERIAL_DELAY);
-      setOdriveVelocity(ODRIVE_BACK_SERIAL, MOTOR_1, RR);
+      setOdriveVelocity(ODRIVE_BACK_SERIAL, MOTOR_1, RR, TQ_BACKWARD);
       // delay(SERIAL_DELAY);
-      setOdriveVelocity(ODRIVE_BACK_SERIAL, MOTOR_2, -RL);
+      setOdriveVelocity(ODRIVE_BACK_SERIAL, MOTOR_2, -RL, TQ_BACKWARD);
       // delay(SERIAL_DELAY);
     }
   }
