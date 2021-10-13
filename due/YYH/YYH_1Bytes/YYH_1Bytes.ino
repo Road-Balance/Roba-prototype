@@ -66,15 +66,15 @@ void loop() {
       STR =
           THR * (1 - k) * axisRightX * 0.7874f; // axisRightX : 0.1, 0.2, 0.3...
 
-      Serial.print(raw_a1y);
-      Serial.print(" ");
-      Serial.println(raw_a2x);
+      // Serial.print(raw_a1y);
+      // Serial.print(" ");
+      // Serial.println(raw_a2x);
 
-      Serial.print(axisLeftY);
-      Serial.print(" ");
-      Serial.println(axisRightX);
+      // Serial.print(axisLeftY);
+      // Serial.print(" ");
+      // Serial.println(axisRightX);
 
-      Serial.println();
+      // Serial.println();
 
       //전후진 && 조향, 추후 axis제어시 데드존 필요
       if (THR != 0.0f) {

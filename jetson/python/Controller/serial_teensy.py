@@ -88,7 +88,11 @@ class TeensySender(object):
 
             self._ser.write(send_msg)
             self.setDict()
-    
+
+            data = self._ser.readline()
+            if data:
+                print(data)
+
     async def controlLoopExecutor(self):
         while True:
             await self._loop.run_in_executor(None, self.control_loop)
