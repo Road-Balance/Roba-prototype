@@ -45,14 +45,14 @@ class SpiderCar(RTCDataChannel):
             val = self._motion["motion"]["value"]
 
             if key == "forward":
-                self._myCar.joyDict['ABS_Y'] = int(127 + (val / 20) * 128)
+                self._myCar.joyDict['ABS_Y'] = int(127 + (val / 20) * 127)
             elif key == "back":
                 self._myCar.joyDict['ABS_Y'] = int(127 - (val / 20) * 127)
 
             if key == "left":
                 self._myCar.joyDict['ABS_RX'] = int(127 - (val / 20) * 127)
             elif key == "right":
-                self._myCar.joyDict['ABS_RX'] = int(127 + (val / 20) * 128)
+                self._myCar.joyDict['ABS_RX'] = int(127 + (val / 20) * 127)
 
     async def printGreeting(self, greeting):
         # print(self._motion)
