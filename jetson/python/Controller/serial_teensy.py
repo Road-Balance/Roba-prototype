@@ -11,6 +11,22 @@ print(args)
 
 
 class TeensySender(object):
+
+    # moves like joystick
+    joyDict = {
+        'ABS_X': 127,
+        'ABS_Y': 127,
+        'ABS_RX': 127,
+        'ABS_RY': 127,
+    }
+
+    prevjoyDict = {
+        'ABS_X': 127,
+        'ABS_Y': 127,
+        'ABS_RX': 127,
+        'ABS_RY': 127,
+    }
+
     def __init__(self, port_name="/dev/ttyACM0", baud_rate=115200, pub_period=0.1):
         super().__init__()
 
@@ -19,42 +35,67 @@ class TeensySender(object):
         self._msg_header = bytes([255, 1])
 
         self._ser = serial.Serial(port_name, self._baud_rate, timeout=10)
+        self._msg_header = bytes([255, 1])
         self._loop = asyncio.get_event_loop()
 
     def __del__(self):
         pass
 
-    def set_axis_val(self, AX_1X, AX_1Y, AX_2X, AX_2Y):
-        self.AX_1X = AX_1X
-        self.AX_1Y = AX_1Y
-        self.AX_2X = AX_2X
-        self.AX_2Y = AX_2Y
+    def set_axis_val(self, ABS_X, ABS_Y, ABS_RX, ABS_RY):
+        joyDict['ABS_X'] = ABS_X
+        joyDict['ABS_Y'] = ABS_Y
+        joyDict['ABS_RX'] = ABS_RX
+        joyDict['ABS_RY'] = ABS_RY
 
-    async def send_bytes(self):
-        self.AX_1X = 129
+    def isChange(self):
+
+        for k in self.joyDict.keys():
+            if self.joyDict[k] != self.prevjoyDict[k]:
+                return True
+
+        return False
+
+    def setDict(self):
+
+        for k in self.joyDict.keys():
+            self.prevjoyDict[k] = self.joyDict[k]
+
+    def parseJoyDict(self):
+
+        output = bytes()
+        bytes_list = []
+
+        for val in self.joyDict.values():
+            # int_val = min( int(val / 257), 254 )
+            # bytes_list.append(int_val)
+            bytes_list.append(val)
+
+        print(bytes_list)
+        output = bytes(bytes_list)
+
+        return output
+
+    def control_loop(self):
+        self.ABS_X = 129
         self.AX_1Y = 129
         self.AX_2X = 129
         self.AX_2Y = 129
 
-        while True:
-            # self.AX_1Y = self.AX_1Y + 1 if self.AX_1Y < 255 else 0
-
-            send_msg = bytes([
-                int(self.AX_1X), 
-                int(self.AX_1Y), 
-                int(self.AX_2X), 
-                int(self.AX_2Y)
-            ])
-            send_msg = self._msg_header + send_msg
-            print(send_msg)  # You'll catch ASCII Conversion
+        if self.isChange():
+            payload = self.parseJoyDict()
+            send_msg = self._msg_header + payload
+            # print(send_msg)  # You'll catch ASCII Conversion
 
             self._ser.write(send_msg)
-
-            await asyncio.sleep(self._pub_period)
+            self.setDict()
+    
+    async def controlLoopExecutor(self):
+        while True:
+            await self._loop.run_in_executor(None, self.control_loop)
 
     def run(self):
         try:
-            asyncio.ensure_future(self.send_bytes())
+            asyncio.ensure_future(self.controlLoopExecutor())
             self._loop.run_forever()
         except KeyboardInterrupt:
             pass

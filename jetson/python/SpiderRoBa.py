@@ -44,19 +44,14 @@ class SpiderCar(RTCDataChannel):
             val = self._motion["motion"]["value"]
 
             if key == "forward":
-                self._myCar.AX_1Y = 127 + (val / 20) * 128
-                self._myCar.AX_2Y = 127 + (val / 20) * 128
+                self._myCar.joyDict['ABS_Y'] = int(127 + (val / 20) * 128)
             elif key == "back":
-                self._myCar.AX_1Y = 129 - (val / 20) * 128
-                self._myCar.AX_2Y = 129 - (val / 20) * 128
+                self._myCar.joyDict['ABS_Y'] = int(127 - (val / 20) * 127)
 
             if key == "left":
-                self._myCar.AX_1Y = 127 - (val / 20) * 128
-                self._myCar.AX_2Y = 129 + (val / 20) * 128
+                self._myCar.joyDict['ABS_RX'] = int(127 - (val / 20) * 127)
             elif key == "right":
-                self._myCar.AX_1Y = 129 + (val / 20) * 128
-                self._myCar.AX_2Y = 127 - (val / 20) * 128
-            
+                self._myCar.joyDict['ABS_RX'] = int(127 + (val / 20) * 128)
 
     async def printGreeting(self, greeting):
         # print(self._motion)
@@ -67,7 +62,7 @@ class SpiderCar(RTCDataChannel):
 
     def run(self):
         try:
-            asyncio.ensure_future(self._myCar.send_bytes())
+            asyncio.ensure_future(self._myCar.controlLoopExecutor())
             asyncio.ensure_future(self.connect())
             asyncio.ensure_future(self.receiver())
             self._loop.run_forever()
@@ -84,9 +79,6 @@ class SpiderCar(RTCDataChannel):
 
 
 if __name__ == "__main__":
-    # [channel] ID: c40hipepjh65aeq6ndj0, Name:
-    # SooYoung,Kim, State:    idle, false, 0/0, cTime: 2021/08/03 15:44:52, uTime: 2021/08/03 15:44:52 |
-    # [channel] ID: c4i6smepjh6ddg9vdsv0, Name:        MarsRacing-01
-    # [channel] ID: c4i6sp6pjh6ddg9vdt00, Name:        MarsRacing-02
+    # [channel] ID: c40hipepjh65aeq6ndj0, Name: SooYoung,Kim, State:    idle, false, 0/0, cTime: 2021/08/03 15:44:52, uTime: 2021/08/03 15:44:52 |
     myRTCBot = SpiderCar(channel_id="c40hipepjh65aeq6ndj0")
     myRTCBot.run()
