@@ -20,7 +20,8 @@ class SpiderCar(RTCDataChannel):
         super().__init__(channel=channel_id)
 
         # Cam Config
-        self._cam = WebCam(width=640, height=480, camID=0)
+        # self._cam = WebCam(width=640, height=480, camID=0)
+        self._cam = CSICam(width=640, height=480, camID=0, flip_method=0)
         self._peer.video.putSubscription(self._cam)
 
         # Controller Config
@@ -44,14 +45,14 @@ class SpiderCar(RTCDataChannel):
             val = self._motion["motion"]["value"]
 
             if key == "forward":
-                self._myCar.joyDict['ABS_Y'] = int(127 + (val / 20) * 128)
+                self._myCar.joyDict['ABS_Y'] = int(127 + (val / 20) * 127)
             elif key == "back":
                 self._myCar.joyDict['ABS_Y'] = int(127 - (val / 20) * 127)
 
             if key == "left":
                 self._myCar.joyDict['ABS_RX'] = int(127 - (val / 20) * 127)
             elif key == "right":
-                self._myCar.joyDict['ABS_RX'] = int(127 + (val / 20) * 128)
+                self._myCar.joyDict['ABS_RX'] = int(127 + (val / 20) * 127)
 
     async def printGreeting(self, greeting):
         # print(self._motion)
