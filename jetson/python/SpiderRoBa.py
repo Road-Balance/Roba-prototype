@@ -20,8 +20,8 @@ class SpiderCar(RTCDataChannel):
         super().__init__(channel=channel_id)
 
         # Cam Config
-        # self._cam = WebCam(width=640, height=480, camID=0)
-        self._cam = CSICam(width=640, height=480, camID=0, flip_method=0)
+        self._cam = WebCam(width=1280, height=720, camID=1)
+        #self._cam = CSICam(width=640, height=480, camID=0, flip_method=0)
         self._peer.video.putSubscription(self._cam)
 
         # Controller Config
