@@ -93,7 +93,9 @@ class JoySerialSenderTwoBytes(object):
                             self.btnDict[event.code] += event.state * 5 
                         if self.btnDict[event.code] < 0:
                             self.btnDict[event.code] = 0
-                    
+                        if self.btnDict[event.code] > 200:
+                            self.btnDict[event.code] = 200
+
                     self.send_signal()
                     print(self.btnDict)
                     continue

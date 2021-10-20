@@ -155,7 +155,7 @@ void loop() {
     }
   }
 
-  destroy_entities();
+  // destroy_entities();
   digitalWrite(LED_PIN, !digitalRead(LED_PIN));
   delayMicroseconds(delay);
 }
