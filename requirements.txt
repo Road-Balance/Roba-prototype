@@ -2,4 +2,3 @@ wheel
 asyncio
 inputs
 pyserial
-pygame==2.0.1

@@ -17,7 +17,7 @@ bool micro_ros_init_successful;
 bool create_entities() {
   ODRIVE_FRONT_SERIAL.begin(115200);
   ODRIVE_BACK_SERIAL.begin(115200);
-  Serial.begin(115200);
+  Serial.begin(115200); 
   Serial.println("INIT,UARTOK");
 
   OdriveSerialSprintf(ODRIVE_FRONT_SERIAL, "sr");
@@ -143,9 +143,9 @@ void loop() {
         Serial.print(" ");
         Serial.println();
 
-        setOdriveVelocity(ODRIVE_FRONT_SERIAL, MOTOR_1, FR, TQ_FORWARD);
+        setOdriveVelocity(ODRIVE_FRONT_SERIAL, MOTOR_1, -FL, TQ_FORWARD);
         // delay(SERIAL_DELAY);
-        setOdriveVelocity(ODRIVE_FRONT_SERIAL, MOTOR_2, -FL, TQ_FORWARD);
+        setOdriveVelocity(ODRIVE_FRONT_SERIAL, MOTOR_2, FR, TQ_FORWARD);
         // delay(SERIAL_DELAY);
         setOdriveVelocity(ODRIVE_BACK_SERIAL, MOTOR_1, RR, TQ_BACKWARD);
         // delay(SERIAL_DELAY);
