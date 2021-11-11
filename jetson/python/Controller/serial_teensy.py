@@ -1,15 +1,8 @@
 import serial
 import asyncio
-import argparse
-
-from time import sleep
-
-ap = argparse.ArgumentParser()
-ap.add_argument("-p", "--port", type=str, help="path to optional input video file")
-args = vars(ap.parse_args())
-print(args)
 
 
+port = "/dev/ttyACM0"
 class TeensySender(object):
 
     # moves like joystick
@@ -55,7 +48,7 @@ class TeensySender(object):
 
         return False
 
-    def setDict(self):
+    def updateDict(self):
 
         for k in self.joyDict.keys():
             self.prevjoyDict[k] = self.joyDict[k]
@@ -76,25 +69,27 @@ class TeensySender(object):
         return output
 
     def control_loop(self):
-        self.ABS_X = 129
-        self.AX_1Y = 129
-        self.AX_2X = 129
-        self.AX_2Y = 129
+        # self.ABS_X = 129
+        # self.AX_1Y = 129
+        # self.AX_2X = 129
+        # self.AX_2Y = 129
 
         if self.isChange():
             payload = self.parseJoyDict()
             send_msg = self._msg_header + payload
-            # print(send_msg)  # You'll catch ASCII Conversion
+            print(send_msg)  # You'll catch ASCII Conversion
 
             self._ser.write(send_msg)
-            self.setDict()
-
-            data = self._ser.readline()
-            if data:
-                print(data)
+            self.updateDict()
 
     async def controlLoopExecutor(self):
         while True:
+            # Debugging Part
+            # 
+            # self.joyDict['ABS_Y'] += 1
+            # if self.joyDict['ABS_Y'] > 254:
+            #     self.joyDict['ABS_Y'] = 0
+            
             await self._loop.run_in_executor(None, self.control_loop)
 
     def run(self):
@@ -110,12 +105,8 @@ class TeensySender(object):
 
 if __name__ == "__main__":
 
-    if args["port"] is None:
-        print("Port Name required")
-        print("Exit Process...")
-        exit(1)
+    my_sender = TeensySender(port_name=port, baud_rate=115200, pub_period=0.01)
 
-    my_sender = TeensySender(port_name=args["port"], baud_rate=115200, pub_period=0.01)
     try:
         my_sender.run()
     except Exception as e:

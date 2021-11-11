@@ -20,15 +20,14 @@ class SpiderCar(RTCDataChannel):
         super().__init__(channel=channel_id)
 
         # Cam Config
-        self._cam = WebCam(width=1280, height=720, camID=1)
+        self._cam = WebCam(width=1280, height=720, camID=0)
         #self._cam = CSICam(width=640, height=480, camID=0, flip_method=0)
         self._peer.video.putSubscription(self._cam)
 
         # Controller Config
-        self._myCar = TeensySender(
+        self._controller = TeensySender(
             port_name=str(self.config["Port"]["TEENSY_PORT"]),
             baud_rate=int(self.config["Communication"]["BAUD_RATE"]),
-            pub_period=float(self.config["Communication"]["PUB_PERIOD"]),
         )
 
         self._motion = {}
@@ -45,25 +44,18 @@ class SpiderCar(RTCDataChannel):
             val = self._motion["motion"]["value"]
 
             if key == "forward":
-                self._myCar.joyDict['ABS_Y'] = int(127 + (val / 20) * 127)
+                self._controller.joyDict['ABS_Y'] = int(128 + (val / 20) * 127)
             elif key == "back":
-                self._myCar.joyDict['ABS_Y'] = int(127 - (val / 20) * 127)
+                self._controller.joyDict['ABS_Y'] = int(128 - (val / 20) * 127)
 
             if key == "left":
-                self._myCar.joyDict['ABS_RX'] = int(127 - (val / 20) * 127)
+                self._controller.joyDict['ABS_RX'] = int(128 - (val / 20) * 127)
             elif key == "right":
-                self._myCar.joyDict['ABS_RX'] = int(127 + (val / 20) * 127)
-
-    async def printGreeting(self, greeting):
-        # print(self._motion)
-        await asyncio.sleep(1.0)  # 1초 대기. asyncio.sleep도 네이티브 코루틴
-        # await self._loop.run_in_executor(None, self._hub.motor_B.angled, 1)
-
-        print(greeting)
+                self._controller.joyDict['ABS_RX'] = int(128 + (val / 20) * 127)
 
     def run(self):
         try:
-            asyncio.ensure_future(self._myCar.controlLoopExecutor())
+            asyncio.ensure_future(self._controller.controlLoopExecutor())
             asyncio.ensure_future(self.connect())
             asyncio.ensure_future(self.receiver())
             self._loop.run_forever()
