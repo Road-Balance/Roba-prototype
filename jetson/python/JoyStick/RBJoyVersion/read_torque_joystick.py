@@ -2,6 +2,7 @@ import inputs
 import serial
 import asyncio
 
+# Joystick MUST be "X" Mode!!
 
 port_name="/dev/ttyACM0"
 baud_rate=115200
